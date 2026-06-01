@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>경희사이버대학교 2026 가을학기 모집 캠페인 대시보드</title>
+<!-- 데이터 기준: 리포트_0601 (5/31까지) -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --card2: #222535;
+    --border: #2e3350;
+    --text: #e2e8f0;
+    --muted: #8892a4;
+    --blue: #4f8ef7;
+    --green: #34d399;
+    --yellow: #fbbf24;
+    --red: #f87171;
+    --purple: #a78bfa;
+    --orange: #fb923c;
+    --cyan: #22d3ee;
+    --pink: #f472b6;
+    --naver: #03c75a;
+    --kakao: #fee500;
+    --meta: #1877f2;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',sans-serif; font-size:14px; }
+
+  .header {
+    background: linear-gradient(135deg, #1a1d27 0%, #0f1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header h1 { font-size: 18px; font-weight: 700; color: var(--text); }
+  .header .meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .badge { display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; }
+  .badge-blue  { background:rgba(79,142,247,.2);  color:var(--blue);   border:1px solid rgba(79,142,247,.3); }
+  .badge-green { background:rgba(52,211,153,.2);  color:var(--green);  border:1px solid rgba(52,211,153,.3); }
+  .badge-yellow{ background:rgba(251,191,36,.2);  color:var(--yellow); border:1px solid rgba(251,191,36,.3); }
+  .badge-red   { background:rgba(248,113,113,.2); color:var(--red);    border:1px solid rgba(248,113,113,.3); }
+  .badge-muted { background:rgba(136,146,164,.15);color:var(--muted);  border:1px solid rgba(136,146,164,.2); }
+  .badge-orange{ background:rgba(251,146,60,.2);  color:var(--orange); border:1px solid rgba(251,146,60,.3); }
+
+  .container { padding: 24px 28px; max-width: 1400px; margin: 0 auto; }
+
+  /* Timeline */
+  .timeline { display:flex; gap:12px; margin-bottom:24px; }
+  .tl-item { flex:1; padding:16px 20px; border-radius:10px; border:1px solid var(--border); background:var(--card); position:relative; overflow:hidden; }
+  .tl-item::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+  .tl-pre::before { background:linear-gradient(90deg,var(--blue),var(--cyan)); }
+  .tl-1::before  { background:linear-gradient(90deg,var(--yellow),var(--orange)); }
+  .tl-2::before  { background:linear-gradient(90deg,var(--purple),var(--pink)); }
+  .tl-label  { font-size:11px; color:var(--muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px; }
+  .tl-period { font-size:18px; font-weight:700; color:var(--text); }
+  .tl-date   { font-size:12px; color:var(--muted); margin-top:4px; }
+  .tl-status { margin-top:10px; }
+
+  /* Section */
+  .section-title { font-size:13px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+  .section { margin-bottom:28px; }
+
+  /* KPI Grid */
+  .kpi-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:18px; }
+  .kpi-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; text-align:center; }
+  .kpi-label  { font-size:11px; color:var(--muted); margin-bottom:8px; }
+  .kpi-val    { font-size:22px; font-weight:700; }
+  .kpi-sub    { font-size:11px; color:var(--muted); margin-top:4px; }
+  .kpi-change { font-size:12px; font-weight:600; margin-top:6px; }
+  .up      { color:var(--green); }
+  .down    { color:var(--red); }
+  .neutral { color:var(--muted); }
+
+  /* Grid layouts */
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:24px; }
+  .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:18px; }
+  .card-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:14px; }
+
+  /* Budget progress bars */
+  .budget-item { margin-bottom:13px; }
+  .budget-label { display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px; }
+  .budget-bar   { height:8px; background:var(--card2); border-radius:4px; overflow:hidden; }
+  .budget-fill  { height:100%; border-radius:4px; transition:width .5s; }
+  .budget-pct   { font-weight:700; font-size:13px; }
+  .budget-amt   { color:var(--muted); font-size:11px; }
+
+  /* Funnel */
+  .funnel-wrap { display:flex; align-items:stretch; gap:0; }
+  .funnel-box { flex:1; text-align:center; padding:14px 10px; background:var(--card2); border:1px solid var(--border); }
+  .funnel-box:first-child  { border-radius:8px 0 0 8px; }
+  .funnel-box:last-child   { border-radius:0 8px 8px 0; border-left:none; }
+  .funnel-mid  { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 8px; min-width:68px; }
+  .funnel-arrow { font-size:18px; color:var(--border); }
+  .funnel-cvr  { font-size:10px; font-weight:700; }
+  .funnel-label { font-size:10px; color:var(--muted); }
+  .funnel-num   { font-size:22px; font-weight:700; }
+  .funnel-name  { font-size:11px; color:var(--muted); margin-top:4px; }
+  .funnel-comp  { font-size:10px; color:var(--muted); margin-top:3px; }
+
+  /* Media cards */
+  .media-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:14px; }
+  .media-card { background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:16px; position:relative; }
+  .media-card.active { border-top:3px solid; }
+  .media-card.pending { opacity:.75; border-style:dashed; }
+  .media-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .media-name  { font-size:13px; font-weight:700; }
+  .media-stats { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .mstat { background:var(--card); border-radius:6px; padding:8px; text-align:center; }
+  .mstat-label { font-size:10px; color:var(--muted); margin-bottom:3px; }
+  .mstat-val   { font-size:14px; font-weight:700; }
+  .mstat-sub   { font-size:10px; color:var(--muted); margin-top:2px; }
+
+  /* SA/DA */
+  .stat-row  { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--border); }
+  .stat-row:last-child { border:none; }
+  .stat-label { font-size:12px; color:var(--muted); }
+  .stat-val   { font-size:13px; font-weight:600; }
+
+  /* Efficiency Table */
+  .eff-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .eff-table th { background:var(--card2); color:var(--muted); font-weight:600; padding:8px 10px; text-align:center; border:1px solid var(--border); font-size:11px; white-space:nowrap; }
+  .eff-table td { padding:8px 10px; border:1px solid var(--border); text-align:center; background:var(--card); }
+  .eff-table tr:hover td { background:var(--card2); }
+  .eff-table .tname { text-align:left; font-weight:600; }
+  .eff-table .total-row td { background:rgba(79,142,247,.08); font-weight:700; }
+  .eff-table .pending-row td { color:var(--muted); font-style:italic; }
+  .bar-inline { display:inline-block; height:6px; border-radius:3px; vertical-align:middle; margin-left:4px; }
+
+  /* Grade badges */
+  .grade-A { color:#34d399; font-weight:700; }
+  .grade-B { color:#4f8ef7; font-weight:700; }
+  .grade-C { color:#fbbf24; font-weight:700; }
+  .grade-D { color:#fb923c; font-weight:700; }
+  .grade-F { color:#f87171; font-weight:700; }
+
+  /* Action items */
+  .action-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .action-card { background:var(--card); border-radius:10px; padding:16px; }
+  .action-card.urgent  { border:1px solid rgba(248,113,113,.4); }
+  .action-card.suggest { border:1px solid rgba(79,142,247,.3); }
+  .action-item { display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-bottom:1px solid var(--border); }
+  .action-item:last-child { border:none; padding-bottom:0; }
+  .action-num  { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; }
+  .urgent-num  { background:rgba(248,113,113,.2); color:var(--red); }
+  .suggest-num { background:rgba(79,142,247,.2); color:var(--blue); }
+  .action-text { font-size:12px; color:var(--text); line-height:1.5; }
+  .action-sub  { font-size:11px; color:var(--muted); margin-top:3px; }
+
+  canvas { max-height:260px; }
+  .note  { font-size:11px; color:var(--muted); padding:8px 12px; background:rgba(255,255,255,.04); border-radius:6px; margin-top:10px; }
+  .pill  { display:inline-block; padding:2px 8px; border-radius:12px; font-size:10px; font-weight:600; }
+  .pill-green  { background:rgba(52,211,153,.15); color:var(--green); }
+  .pill-muted  { background:rgba(136,146,164,.12); color:var(--muted); }
+  .pill-orange { background:rgba(251,146,60,.15); color:var(--orange); }
+
+  /* ── 로그인 오버레이 ── */
+  #loginOverlay {
+    position:fixed; inset:0; z-index:9999;
+    background: linear-gradient(135deg, #0d1018 0%, #141929 100%);
+    display:flex; align-items:center; justify-content:center;
+  }
+  #loginBox {
+    background:var(--card); border:1px solid var(--border); border-radius:16px;
+    padding:48px 40px; text-align:center; max-width:420px; width:90%;
+    box-shadow: 0 24px 64px rgba(0,0,0,.5);
+  }
+  #loginBox .logo { font-size:28px; margin-bottom:8px; }
+  #loginBox h2 { font-size:18px; font-weight:700; color:var(--text); margin-bottom:6px; }
+  #loginBox p  { font-size:13px; color:var(--muted); margin-bottom:32px; line-height:1.6; }
+  #loginBox .g-btn-wrap { display:flex; justify-content:center; }
+  #loginError {
+    margin-top:18px; padding:10px 14px; border-radius:8px;
+    background:rgba(248,113,113,.12); border:1px solid rgba(248,113,113,.3);
+    color:var(--red); font-size:12px; display:none;
+  }
+  #dashboardWrap { display:none; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════ 로그인 오버레이 ══════════════════════ -->
+<div id="loginOverlay">
+  <div id="loginBox">
+    <div class="logo">📊</div>
+    <h2>경희사이버대학교<br>캠페인 대시보드</h2>
+    <p>접근 권한이 있는 구글 계정으로<br>로그인해주세요.</p>
+    <div class="g-btn-wrap">
+      <div id="g_id_onload"
+        data-client_id="704272852893-386b80pnqkdvashom45noruss0nqjfs7.apps.googleusercontent.com"
+        data-callback="handleCredential"
+        data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+        data-type="standard"
+        data-shape="pill"
+        data-theme="filled_blue"
+        data-text="signin_with"
+        data-size="large"
+        data-locale="ko">
+      </div>
+    </div>
+    <div id="loginError">⛔ 접근 권한이 없는 계정입니다.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════ 대시보드 (로그인 후 표시) ══════════════════════ -->
+<div id="dashboardWrap">
+
+<!-- ══════════════════════ HEADER ══════════════════════ -->
+<div class="header">
+  <div>
+    <h1>경희사이버대학교 2026 가을학기 모집 캠페인</h1>
+    <div class="meta">리포트 기준일: 2026.05.31 &nbsp;|&nbsp; 캠페인 기간: 2026.05.18 ~ 2026.08.19 (93일) &nbsp;|&nbsp; 집행 매체: 구글·메타 (6/1부터 네이버·카카오·네이트 추가)</div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <span class="badge badge-yellow">1차모집 D-Day</span>
+    <span class="badge badge-blue">사전모집 완료</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ── 1. 타임라인 ── -->
+<div class="section">
+  <div class="section-title">📅 입시 기간 타임라인</div>
+  <div class="timeline">
+    <div class="tl-item tl-pre">
+      <div class="tl-label">사전모집</div>
+      <div class="tl-period">사전</div>
+      <div class="tl-date">2026.05.18 ~ 05.31 (14일)</div>
+      <div class="tl-status"><span class="badge badge-green">✅ 완료</span></div>
+    </div>
+    <div class="tl-item tl-1">
+      <div class="tl-label">1차모집</div>
+      <div class="tl-period">1차</div>
+      <div class="tl-date">2026.06.01 ~ 07.15 (45일)</div>
+      <div class="tl-status"><span class="badge badge-yellow">🔜 오늘 시작</span></div>
+    </div>
+    <div class="tl-item tl-2">
+      <div class="tl-label">2차모집</div>
+      <div class="tl-period">2차</div>
+      <div class="tl-date">2026.07.24 ~ 08.19 (27일)</div>
+      <div class="tl-status"><span class="badge badge-muted">대기</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 2. 사전모집 KPI ── -->
+<div class="section">
+  <div class="section-title">📊 사전모집 성과 KPI (5/18~5/31 확정)</div>
+  <div class="kpi-grid" style="grid-template-columns:repeat(6,1fr)">
+    <div class="kpi-card">
+      <div class="kpi-label">집행 노출수</div>
+      <div class="kpi-val" style="color:var(--yellow)">631,202</div>
+      <div class="kpi-sub">구글+메타 합산</div>
+      <div class="kpi-change neutral">전기간 확정</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">총 클릭수</div>
+      <div class="kpi-val" style="color:var(--green)">27,505</div>
+      <div class="kpi-sub">2025 사전: 5,465</div>
+      <div class="kpi-change up">▲ +403%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">CV1 지원서 작성</div>
+      <div class="kpi-val" style="color:var(--cyan)">1,878</div>
+      <div class="kpi-sub">2025 사전: 1,593</div>
+      <div class="kpi-change up">▲ +17.9%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">CV2 유의사항</div>
+      <div class="kpi-val" style="color:var(--purple)">1,278</div>
+      <div class="kpi-sub">CVR① 6.83%</div>
+      <div class="kpi-change neutral">클릭→지원서</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">3단계 (원서 작성)</div>
+      <div class="kpi-val" style="color:var(--muted)">집계 중</div>
+      <div class="kpi-sub">CV3 데이터 미확정</div>
+      <div class="kpi-change neutral">— 업데이트 예정</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">광고비 소진 (사전)</div>
+      <div class="kpi-val" style="color:var(--text)">₩2,727,272</div>
+      <div class="kpi-sub">사전예산 2,727,272원</div>
+      <div class="kpi-change up">소진율 100%</div>
+    </div>
+  </div>
+
+  <!-- 전환 퍼널 -->
+  <div class="card" style="margin-bottom:0">
+    <div class="card-title">🔽 전환 단계별 퍼널 (사전모집 확정)</div>
+    <div class="funnel-wrap">
+      <div class="funnel-box" style="border-radius:8px 0 0 8px">
+        <div class="funnel-label">유입</div>
+        <div class="funnel-num" style="color:var(--text)">27,505</div>
+        <div class="funnel-name">클릭</div>
+      </div>
+      <div class="funnel-mid">
+        <div class="funnel-cvr" style="color:var(--green)">CVR① 6.83%</div>
+        <div class="funnel-arrow">→</div>
+        <div class="funnel-label">클릭→지원서</div>
+      </div>
+      <div class="funnel-box" style="border-left:none">
+        <div class="funnel-label">① 1단계</div>
+        <div class="funnel-num" style="color:var(--yellow)">1,878</div>
+        <div class="funnel-name">지원서 작성</div>
+        <div class="funnel-comp">2025: 1,593 <span class="up">▲+17.9%</span></div>
+      </div>
+      <div class="funnel-mid">
+        <div class="funnel-cvr" style="color:var(--cyan)">CVR② 68.1%</div>
+        <div class="funnel-arrow">→</div>
+        <div class="funnel-label">지원서→유의</div>
+      </div>
+      <div class="funnel-box" style="border-left:none">
+        <div class="funnel-label">② 2단계</div>
+        <div class="funnel-num" style="color:var(--cyan)">1,278</div>
+        <div class="funnel-name">유의사항</div>
+      </div>
+      <div class="funnel-mid">
+        <div class="funnel-cvr" style="color:var(--muted)">CV3 미집계</div>
+        <div class="funnel-arrow">→</div>
+        <div class="funnel-label">유의→원서</div>
+      </div>
+      <div class="funnel-box" style="border-radius:0 8px 8px 0;border-left:none">
+        <div class="funnel-label">③ 3단계</div>
+        <div class="funnel-num" style="color:var(--muted)">-</div>
+        <div class="funnel-name">원서 작성</div>
+        <div class="funnel-comp">데이터 집계 중</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 3. 전체 예산 소진 현황 ── -->
+<div class="section">
+  <div class="section-title">💰 전체 예산 소진 현황 — 사전모집 기준</div>
+  <div class="grid-2">
+    <!-- 전체 요약 -->
+    <div class="card">
+      <div class="card-title">총 예산 집행 현황</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:16px">
+        <div style="font-size:28px;font-weight:700;color:var(--yellow)">1.2%</div>
+        <div style="color:var(--muted);font-size:13px">소진 (₩2,727,272 / ₩226,030,000)</div>
+      </div>
+      <div class="budget-item">
+        <div class="budget-label">
+          <span style="font-weight:600">전체 캠페인</span>
+          <span class="budget-pct" style="color:var(--yellow)">1.2%</span>
+        </div>
+        <div class="budget-bar"><div class="budget-fill" style="width:1.2%;background:var(--yellow)"></div></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">₩2,727,272 소진 / 잔액 ₩223,302,728</div>
+      </div>
+      <div class="note">💡 사전모집(5/18~5/31) 예산만 집행. 1차모집(6/1~) 본예산 잔존</div>
+    </div>
+
+    <!-- 매체별 예산 -->
+    <div class="card">
+      <div class="card-title">매체별 예산 소진율</div>
+
+      <div class="budget-item">
+        <div class="budget-label">
+          <span>구글 (PMax+DG+GDN)</span>
+          <span class="budget-pct" style="color:var(--blue)">2.4%</span>
+        </div>
+        <div class="budget-bar"><div class="budget-fill" style="width:2.4%;background:var(--blue)"></div></div>
+        <div class="budget-amt">₩2,454,545 / ₩101,818,182</div>
+      </div>
+
+      <div class="budget-item">
+        <div class="budget-label">
+          <span>메타 (인스타그램)</span>
+          <span class="budget-pct" style="color:var(--pink)">2.7%</span>
+        </div>
+        <div class="budget-bar"><div class="budget-fill" style="width:2.7%;background:var(--pink)"></div></div>
+        <div class="budget-amt">₩272,727 / ₩10,227,272</div>
+      </div>
+
+      <div class="budget-item">
+        <div class="budget-label">
+          <span>네이버 NOSP <span class="pill pill-orange">6/1 시작</span></span>
+          <span class="budget-pct" style="color:var(--muted)">0%</span>
+        </div>
+        <div class="budget-bar"><div class="budget-fill" style="width:0%;background:var(--naver)"></div></div>
+        <div class="budget-amt">₩0 / ₩48,000,000</div>
+      </div>
+
+      <div class="budget-item">
+        <div class="budget-label">
+          <span>네이버 브랜드검색 <span class="pill pill-orange">예정</span></span>
+          <span class="budget-pct" style="color:var(--muted)">0%</span>
+        </div>
+        <div class="budget-bar"><div class="budget-fill" style="width:0%;background:var(--naver)"></div></div>
+        <div class="budget-amt">₩0 / ₩20,530,000</div>
+      </div>
+
+      <div class="budget-item">
+        <div class="budget-label">
+          <span>네이테 <span class="pill pill-orange">예정</span></span>
+          <span class="budget-pct" style="color:var(--muted)">0%</span>
+        </div>
+        <div class="budget-bar"><div class="budget-fill" style="width:0%;background:var(--cyan)"></div></div>
+        <div class="budget-amt">₩0 / ₩30,000,000</div>
+      </div>
+
+      <div class="budget-item">
+        <div class="budget-label">
+          <span>카카오모먼트 <span class="pill pill-orange">예정</span></span>
+          <span class="budget-pct" style="color:var(--muted)">0%</span>
+        </div>
+        <div class="budget-bar"><div class="budget-fill" style="width:0%;background:var(--kakao)"></div></div>
+        <div class="budget-amt">₩0 / ₩6,363,636</div>
+      </div>
+
+      <div class="budget-item">
+        <div class="budget-label">
+          <span>네이버 GFA <span class="pill pill-orange">예정</span></span>
+          <span class="budget-pct" style="color:var(--muted)">0%</span>
+        </div>
+        <div class="budget-bar"><div class="budget-fill" style="width:0%;background:var(--naver)"></div></div>
+        <div class="budget-amt">₩0 / ₩9,090,909</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 4. 매체별 성과 상세 ── -->
+<div class="section">
+  <div class="section-title">📡 매체별 성과 상세</div>
+
+  <!-- 집행 완료: 구글 + 메타 -->
+  <div style="font-size:12px;color:var(--green);font-weight:600;margin-bottom:10px">✅ 사전모집 집행 완료</div>
+  <div class="media-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:20px">
+
+    <!-- 구글 전체 -->
+    <div class="media-card active" style="border-top-color:var(--blue)">
+      <div class="media-header">
+        <div class="media-name" style="color:var(--blue)">🔵 구글 (합계)</div>
+        <span class="badge badge-blue">PMax + DG + GDN</span>
+      </div>
+      <div class="media-stats" style="grid-template-columns:repeat(4,1fr)">
+        <div class="mstat">
+          <div class="mstat-label">노출</div>
+          <div class="mstat-val" style="color:var(--text)">546,106</div>
+        </div>
+        <div class="mstat">
+          <div class="mstat-label">클릭</div>
+          <div class="mstat-val" style="color:var(--green)">25,775</div>
+        </div>
+        <div class="mstat">
+          <div class="mstat-label">CV1</div>
+          <div class="mstat-val" style="color:var(--yellow)">1,828</div>
+        </div>
+        <div class="mstat">
+          <div class="mstat-label">CV2</div>
+          <div class="mstat-val" style="color:var(--cyan)">1,254</div>
+        </div>
+        <div class="mstat">
+          <div class="mstat-label">CTR</div>
+          <div class="mstat-val" style="color:var(--blue)">4.72%</div>
+        </div>
+        <div class="mstat">
+          <div class="mstat-label">CVR</div>
+          <div class="mstat-val" style="color:var(--green)">7.09%</div>
+        </div>
+        <div class="mstat">
+          <div class="mstat-label">CPC</div>
+          <div class="mstat-val" style="color:var(--text)">₩95</div>
+        </div>
+        <div class="mstat">
+          <div class="mstat-label">소진</div>
+          <div class="mstat-val" style="color:var(--text)">₩2.45M</div>
+        </div>
+      </div>
+      <!-- 구글 상품별 -->
+      <div style="margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <div style="background:var(--card);border-radius:8px;padding:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:6px">PMax</div>
+          <div class="stat-row"><span class="stat-label">클릭</span><span class="stat-val">9,219</span></div>
+          <div class="stat-row"><span class="stat-label">CV1</span><span class="stat-val" style="color:var(--yellow)">1,751</span></div>
+          <div class="stat-row"><span class="stat-label">CVR</span><span class="stat-val" style="color:var(--green)">19.0%</span></div>
+          <div class="stat-row"><span class="stat-label">CPC</span><span class="stat-val">₩197</span></div>
+          <div class="stat-row"><span class="stat-label">소진</span><span class="stat-val">₩1.82M</span></div>
+        </div>
+        <div style="background:var(--card);border-radius:8px;padding:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--cyan);margin-bottom:6px">DG영상</div>
+          <div class="stat-row"><span class="stat-label">클릭</span><span class="stat-val">3,046</span></div>
+          <div class="stat-row"><span class="stat-label">CV1</span><span class="stat-val" style="color:var(--yellow)">77</span></div>
+          <div class="stat-row"><span class="stat-label">CVR</span><span class="stat-val">2.53%</span></div>
+          <div class="stat-row"><span class="stat-label">CPC</span><span class="stat-val">₩90</span></div>
+          <div class="stat-row"><span class="stat-label">소진</span><span class="stat-val">₩273K</span></div>
+        </div>
+        <div style="background:var(--card);border-radius:8px;padding:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--purple);margin-bottom:6px">GDN</div>
+          <div class="stat-row"><span class="stat-label">클릭</span><span class="stat-val">13,510</span></div>
+          <div class="stat-row"><span class="stat-label">CV1</span><span class="stat-val" style="color:var(--muted)">0</span></div>
+          <div class="stat-row"><span class="stat-label">CVR</span><span class="stat-val" style="color:var(--red)">0%</span></div>
+          <div class="stat-row"><span class="stat-label">CPC</span><span class="stat-val">₩27</span></div>
+          <div class="stat-row"><span class="stat-label">소진</span><span class="stat-val">₩364K</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 메타 -->
+    <div class="media-card active" style="border-top-color:var(--pink)">
+      <div class="media-header">
+        <div class="media-name" style="color:var(--pink)">🩷 메타 (인스타그램)</div>
+        <span class="badge badge-muted">인스타 피드</span>
+      </div>
+      <div class="media-stats" style="grid-template-columns:repeat(4,1fr)">
+        <div class="mstat">
+          <div class="mstat-label">노출</div>
+          <div class="mstat-val">85,096</div>
+        </div>
+        <div class="mstat">
+          <div class="mstat-label">클릭</div>
+          <div class="mstat-val" style="color:var(--green)">1,730</div>
+        </div>
+        <div class="mstat">
+          <div class="mstat-label">CV1</div>
+          <div class="mstat-val" style="color:var(--yellow)">50</div>
+        </div>
+        <div class="mstat">
+          <div class="mstat-label">CV2</div>
+          <div class="mstat-val" style="color:var(--cyan)">24</div>
+        </div>
+        <div class="mstat">
+          <div class="mstat-label">CTR</div>
+          <div class="mstat-val" style="color:var(--blue)">2.03%</div>
+        </div>
+        <div class="mstat">
+          <div class="mstat-label">CVR</div>
+          <div class="mstat-val" style="color:var(--yellow)">2.89%</div>
+        </div>
+        <div class="mstat">
+          <div class="mstat-label">CPC</div>
+          <div class="mstat-val">₩158</div>
+        </div>
+        <div class="mstat">
+          <div class="mstat-label">소진</div>
+          <div class="mstat-val">₩273K</div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="note">📌 6/1부터 스레드 피드 추가 집행 예정 (예산 ₩2,045,454 추가)</div>
+        <div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:var(--card);border-radius:8px;padding:10px">
+            <div style="font-size:11px;font-weight:700;color:var(--pink);margin-bottom:6px">인스타 피드 (완료)</div>
+            <div class="stat-row"><span class="stat-label">예산</span><span class="stat-val">₩272,727</span></div>
+            <div class="stat-row"><span class="stat-label">소진율</span><span class="stat-val" style="color:var(--green)">100%</span></div>
+          </div>
+          <div style="background:var(--card);border-radius:8px;padding:10px;opacity:.7">
+            <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">스레드 피드 <span class="pill pill-orange">6/1↑</span></div>
+            <div class="stat-row"><span class="stat-label">예산</span><span class="stat-val">₩2,045,454</span></div>
+            <div class="stat-row"><span class="stat-label">소진율</span><span class="stat-val" style="color:var(--muted)">집행 예정</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6/1 집행 예정 매체 -->
+  <div style="font-size:12px;color:var(--orange);font-weight:600;margin-bottom:10px">🔜 6/1~ 집행 예정 매체</div>
+  <div class="media-grid" style="grid-template-columns:repeat(5,1fr)">
+
+    <!-- 네이버 NOSP -->
+    <div class="media-card pending" style="border-color:var(--naver)">
+      <div class="media-header">
+        <div class="media-name" style="color:var(--naver)">🟢 네이버 NOSP</div>
+        <span class="pill pill-orange">D-Day</span>
+      </div>
+      <div class="media-stats">
+        <div class="mstat"><div class="mstat-label">예산</div><div class="mstat-val" style="font-size:12px">₩48,000,000</div></div>
+        <div class="mstat"><div class="mstat-label">집행 시작</div><div class="mstat-val" style="font-size:12px">2026.06.01</div></div>
+        <div class="mstat"><div class="mstat-label">예상 노출</div><div class="mstat-val" style="font-size:12px">72,000,000</div></div>
+        <div class="mstat"><div class="mstat-label">예상 클릭</div><div class="mstat-val" style="font-size:12px">21,600</div></div>
+      </div>
+      <div class="note" style="margin-top:8px">PC 헤드라인DA · 6/1, 6/9, 6/13 집행</div>
+    </div>
+
+    <!-- 네이버 GFA -->
+    <div class="media-card pending" style="border-color:var(--naver)">
+      <div class="media-header">
+        <div class="media-name" style="color:var(--naver)">🟢 네이버 GFA</div>
+        <span class="pill pill-orange">예정</span>
+      </div>
+      <div class="media-stats">
+        <div class="mstat"><div class="mstat-label">예산</div><div class="mstat-val" style="font-size:12px">₩9,090,909</div></div>
+        <div class="mstat"><div class="mstat-label">집행 시작</div><div class="mstat-val" style="font-size:12px">6/1(월) 예정</div></div>
+        <div class="mstat"><div class="mstat-label">예상 노출</div><div class="mstat-val" style="font-size:12px">13,979,774</div></div>
+        <div class="mstat"><div class="mstat-label">예상 클릭</div><div class="mstat-val" style="font-size:12px">9,915</div></div>
+      </div>
+    </div>
+
+    <!-- 네이트 -->
+    <div class="media-card pending" style="border-color:var(--cyan)">
+      <div class="media-header">
+        <div class="media-name" style="color:var(--cyan)">🔵 네이트</div>
+        <span class="pill pill-orange">예정</span>
+      </div>
+      <div class="media-stats">
+        <div class="mstat"><div class="mstat-label">예산</div><div class="mstat-val" style="font-size:12px">₩30,000,000</div></div>
+        <div class="mstat"><div class="mstat-label">집행 시작</div><div class="mstat-val" style="font-size:12px">6/1(월) 예정</div></div>
+        <div class="mstat"><div class="mstat-label">예상 노출</div><div class="mstat-val" style="font-size:12px">172,000,000</div></div>
+        <div class="mstat"><div class="mstat-label">예상 클릭</div><div class="mstat-val" style="font-size:12px">144,600</div></div>
+      </div>
+    </div>
+
+    <!-- 카카오모먼트 -->
+    <div class="media-card pending" style="border-color:#e5c800">
+      <div class="media-header">
+        <div class="media-name" style="color:#e5c800">🟡 카카오모먼트</div>
+        <span class="pill pill-orange">예정</span>
+      </div>
+      <div class="media-stats">
+        <div class="mstat"><div class="mstat-label">예산</div><div class="mstat-val" style="font-size:12px">₩6,363,636</div></div>
+        <div class="mstat"><div class="mstat-label">집행 시작</div><div class="mstat-val" style="font-size:12px">6/1(월) 예정</div></div>
+        <div class="mstat"><div class="mstat-label">예상 노출</div><div class="mstat-val" style="font-size:12px">8,053,508</div></div>
+        <div class="mstat"><div class="mstat-label">예상 클릭</div><div class="mstat-val" style="font-size:12px">14,844</div></div>
+      </div>
+    </div>
+
+    <!-- 네이버 브랜드검색 -->
+    <div class="media-card pending" style="border-color:var(--naver)">
+      <div class="media-header">
+        <div class="media-name" style="color:var(--naver)">🟢 브랜드검색</div>
+        <span class="pill pill-orange">예정</span>
+      </div>
+      <div class="media-stats">
+        <div class="mstat"><div class="mstat-label">예산</div><div class="mstat-val" style="font-size:12px">₩20,530,000</div></div>
+        <div class="mstat"><div class="mstat-label">집행 시작</div><div class="mstat-val" style="font-size:12px">6/1(월) 예정</div></div>
+        <div class="mstat"><div class="mstat-label">예상 노출</div><div class="mstat-val" style="font-size:12px">202,347</div></div>
+        <div class="mstat"><div class="mstat-label">예상 클릭</div><div class="mstat-val" style="font-size:12px">80,939</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 5. 매체 효율 비교표 ── -->
+<div class="section">
+  <div class="section-title">📋 매체 효율 비교표 (사전모집 집행 실적)</div>
+  <div class="card">
+    <table class="eff-table">
+      <thead>
+        <tr>
+          <th style="text-align:left;width:14%">매체/상품</th>
+          <th>노출</th>
+          <th>클릭</th>
+          <th>CTR</th>
+          <th>CV1</th>
+          <th>CV2</th>
+          <th>CVR①</th>
+          <th>CPC</th>
+          <th>예산</th>
+          <th>소진</th>
+          <th>소진율</th>
+          <th>효율등급</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="tname">구글 PMax</td>
+          <td>148,727</td><td>9,219</td>
+          <td><span class="grade-A">6.20%</span></td>
+          <td><span style="color:var(--yellow);font-weight:700">1,751</span></td>
+          <td>1,227</td>
+          <td><span class="grade-A">19.0%</span></td>
+          <td>₩197</td>
+          <td>₩1,818,182</td><td>₩1,818,182</td>
+          <td><span class="grade-A">100%</span></td>
+          <td><span class="grade-A">A</span></td>
+        </tr>
+        <tr>
+          <td class="tname">구글 DG영상</td>
+          <td>100,361</td><td>3,046</td>
+          <td><span class="grade-B">3.03%</span></td>
+          <td>77</td><td>27</td>
+          <td><span class="grade-C">2.53%</span></td>
+          <td>₩90</td>
+          <td>₩272,727</td><td>₩272,727</td>
+          <td><span class="grade-A">100%</span></td>
+          <td><span class="grade-C">C</span></td>
+        </tr>
+        <tr>
+          <td class="tname">구글 GDN</td>
+          <td>297,018</td><td>13,510</td>
+          <td><span class="grade-B">4.55%</span></td>
+          <td><span style="color:var(--red)">0</span></td><td>0</td>
+          <td><span class="grade-F">0%</span></td>
+          <td><span style="color:var(--green)">₩27</span></td>
+          <td>₩363,636</td><td>₩363,636</td>
+          <td><span class="grade-A">100%</span></td>
+          <td><span class="grade-D">D</span></td>
+        </tr>
+        <tr>
+          <td class="tname">메타 인스타</td>
+          <td>85,096</td><td>1,730</td>
+          <td><span class="grade-C">2.03%</span></td>
+          <td>50</td><td>24</td>
+          <td><span class="grade-C">2.89%</span></td>
+          <td>₩158</td>
+          <td>₩272,727</td><td>₩272,727</td>
+          <td><span class="grade-A">100%</span></td>
+          <td><span class="grade-C">C</span></td>
+        </tr>
+        <tr class="total-row">
+          <td class="tname">📊 합계</td>
+          <td>631,202</td><td>27,505</td>
+          <td>4.35%</td>
+          <td><strong style="color:var(--yellow)">1,878</strong></td>
+          <td><strong>1,278</strong></td>
+          <td><strong>6.83%</strong></td>
+          <td>₩99</td>
+          <td>₩2,727,272</td><td>₩2,727,272</td>
+          <td>100%</td>
+          <td>—</td>
+        </tr>
+        <tr class="pending-row">
+          <td class="tname">네이버 NOSP</td>
+          <td colspan="9" style="text-align:center;color:var(--muted)">6/1 집행 예정 — 데이터 없음</td>
+          <td>0%</td><td>—</td>
+        </tr>
+        <tr class="pending-row">
+          <td class="tname">네이버 GFA</td>
+          <td colspan="9" style="text-align:center;color:var(--muted)">집행 예정 — 데이터 없음</td>
+          <td>0%</td><td>—</td>
+        </tr>
+        <tr class="pending-row">
+          <td class="tname">네이테</td>
+          <td colspan="9" style="text-align:center;color:var(--muted)">집행 예정 — 데이터 없음</td>
+          <td>0%</td><td>—</td>
+        </tr>
+        <tr class="pending-row">
+          <td class="tname">카카오모먼트</td>
+          <td colspan="9" style="text-align:center;color:var(--muted)">집행 예정 — 데이터 없음</td>
+          <td>0%</td><td>—</td>
+        </tr>
+        <tr class="pending-row">
+          <td class="tname">브랜드검색</td>
+          <td colspan="9" style="text-align:center;color:var(--muted)">집행 예정 — 데이터 없음</td>
+          <td>0%</td><td>—</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="note" style="margin-top:10px">등급 기준 — A: CVR 10%↑ / B: CVR 5~10% / C: CVR 1~5% / D: CVR 0.1~1% / F: CVR 0%</div>
+  </div>
+</div>
+
+<!-- ── 6. 일별 추이 차트 ── -->
+<div class="section">
+  <div class="section-title">📈 일별 성과 추이 (사전모집 5/18~5/31)</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">일별 클릭수 추이</div>
+      <div class="chart-wrap"><canvas id="chartDailyClk"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">일별 CV1 (지원서 작성) 추이</div>
+      <div class="chart-wrap"><canvas id="chartDailyCV"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">일별 소진액 추이</div>
+    <div class="chart-wrap" style="max-height:220px"><canvas id="chartDailySpend"></canvas></div>
+  </div>
+</div>
+
+<!-- ── 7. 주차별 추이 ── -->
+<div class="section">
+  <div class="section-title">📊 2025 vs 2026 주차별 단계별 비교</div>
+  <div class="grid-3" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-title">1단계 (지원서 작성)</div>
+      <div class="chart-wrap" style="max-height:220px"><canvas id="chartWeekly"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">2단계 (유의사항)</div>
+      <div class="chart-wrap" style="max-height:220px"><canvas id="chartWeekly2"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">3단계 (원서 작성)</div>
+      <div class="chart-wrap" style="max-height:220px"><canvas id="chartWeekly3"></canvas></div>
+    </div>
+  </div>
+  <div class="note" style="margin-bottom:16px">※ 2025 2·3단계 데이터는 이번 리포트에 미포함. 엑셀 업데이트 시 반영 예정 &nbsp;|&nbsp; 2026 사전: 1단계 1,878 / 2단계 1,278 확정</div>
+
+  <!-- 주차별 3단계 비교표 -->
+  <div class="card">
+    <div class="card-title">주차별 전환 단계별 실적 (2025 vs 2026)</div>
+    <div style="overflow-x:auto">
+    <table class="eff-table" style="min-width:700px">
+      <thead>
+        <tr>
+          <th rowspan="2" style="text-align:left;width:9%">주차</th>
+          <th colspan="2" style="background:rgba(79,142,247,.15);color:var(--blue)">2025 실적</th>
+          <th colspan="3" style="background:rgba(52,211,153,.12);color:var(--green)">2026 실적</th>
+          <th rowspan="2" style="width:9%">1단계<br>YoY</th>
+        </tr>
+        <tr>
+          <th style="background:rgba(79,142,247,.08)">1단계<br><span style="font-weight:400;color:var(--muted)">(지원서 클릭)</span></th>
+          <th style="background:rgba(79,142,247,.08)">2단계<br><span style="font-weight:400;color:var(--muted)">(지원서 도착)</span></th>
+          <th style="background:rgba(52,211,153,.08)">1단계<br><span style="font-weight:400;color:var(--muted)">(지원서 작성)</span></th>
+          <th style="background:rgba(52,211,153,.08)">2단계<br><span style="font-weight:400;color:var(--muted)">(유의사항)</span></th>
+          <th style="background:rgba(52,211,153,.08)">3단계<br><span style="font-weight:400;color:var(--muted)">(원서 작성)</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="total-row">
+          <td class="tname">사전</td>
+          <td>1,593</td><td style="color:var(--muted)">—</td>
+          <td><strong style="color:var(--green)">1,878</strong></td>
+          <td><strong>1,278</strong></td>
+          <td><span style="color:var(--muted)">집계 중</span></td>
+          <td><span class="up">▲+17.9%</span></td>
+        </tr>
+        <tr><td class="tname">1주차</td><td>1,651</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td></tr>
+        <tr><td class="tname">2주차</td><td>2,783</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td></tr>
+        <tr><td class="tname">3주차</td><td>2,684</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td></tr>
+        <tr><td class="tname">4주차</td><td>2,769</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td></tr>
+        <tr><td class="tname">5주차</td><td>2,192</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td></tr>
+        <tr><td class="tname">6주차</td><td>2,332</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td></tr>
+        <tr><td class="tname">7주차</td><td>2,408</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td></tr>
+        <tr><td class="tname">8주차</td><td>3,495</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td></tr>
+        <tr><td class="tname">9주차</td><td>5,122</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td></tr>
+        <tr><td class="tname">10주차</td><td>3,901</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td></tr>
+        <tr><td class="tname">11주차</td><td>2,026</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td></tr>
+        <tr><td class="tname">12주차</td><td>1,593</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td><td style="color:var(--muted)">—</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="note" style="margin-top:8px">2025 2단계·3단계 데이터는 리포트에 없는 경우 — 로 표시. 2026 1차모집~은 엑셀 업데이트 시 반영</div>
+  </div>
+</div>
+
+
+</div><!-- /container -->
+</div><!-- /dashboardWrap -->
+
+<!-- ══════════════════════ CHARTS ══════════════════════ -->
+<script>
+Chart.defaults.color = '#8892a4';
+Chart.defaults.borderColor = '#2e3350';
+
+const days = ['5/18','5/19','5/20','5/21','5/22','5/23','5/24','5/25','5/26','5/27','5/28','5/29','5/30','5/31'];
+
+// 일별 클릭 (구글+메타 합산 근사 — 구글 daily + 메타 비례 배분)
+const totalClk  = [1458,1579,628,994,1460,2232,2520,2588,2048,2318,1987,2191,1994,1778];
+const pmaxClk   = [683,651,394,704,936,922,970,841,512,513,529,647,401,516];
+const totalCV1  = [147,166,77,95,79,115,128,205,138,136,110,167,122,143];
+const pmaxCV1   = [133,151,72,89,75,109,125,200,132,134,108,164,119,140];
+const totalSpend= [532570,185344,125036,121722,128679,147900,162184,166616,158586,176380,169486,133540,134603,111901];
+
+// 일별 클릭 차트
+new Chart(document.getElementById('chartDailyClk'), {
+  type:'bar',
+  data:{
+    labels: days,
+    datasets:[
+      { label:'PMax 클릭', data:pmaxClk,   backgroundColor:'rgba(79,142,247,.7)',  order:1 },
+      { label:'기타(DG+GDN+메타)', data:totalClk.map((v,i)=>v-pmaxClk[i]),
+        backgroundColor:'rgba(167,139,250,.5)', order:1 },
+      { label:'총 클릭', data:totalClk, type:'line', borderColor:'#34d399',
+        backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'#34d399', order:0 }
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:true,
+    scales:{
+      x:{ stacked:true },
+      y:{ stacked:true, ticks:{ callback:v=>v.toLocaleString() } }
+    },
+    plugins:{ legend:{ labels:{ font:{size:11} } } }
+  }
+});
+
+// 일별 CV1 차트
+new Chart(document.getElementById('chartDailyCV'), {
+  type:'bar',
+  data:{
+    labels: days,
+    datasets:[
+      { label:'PMax CV1', data:pmaxCV1,  backgroundColor:'rgba(251,191,36,.8)',  order:1 },
+      { label:'기타 CV1', data:totalCV1.map((v,i)=>Math.max(0,v-pmaxCV1[i])),
+        backgroundColor:'rgba(52,211,153,.5)', order:1 },
+      { label:'총 CV1', data:totalCV1, type:'line', borderColor:'#f472b6',
+        backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'#f472b6', order:0 }
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:true,
+    scales:{ x:{stacked:true}, y:{stacked:true, ticks:{callback:v=>v.toLocaleString()}} },
+    plugins:{ legend:{ labels:{font:{size:11}} } }
+  }
+});
+
+// 일별 소진액
+new Chart(document.getElementById('chartDailySpend'), {
+  type:'bar',
+  data:{
+    labels: days,
+    datasets:[{
+      label:'일별 소진액(₩)',
+      data: totalSpend,
+      backgroundColor: totalSpend.map(v => v > 200000 ? 'rgba(248,113,113,.7)' : 'rgba(79,142,247,.6)'),
+      borderRadius: 4
+    }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:true,
+    scales:{ y:{ ticks:{ callback:v=>'₩'+(v/1000).toFixed(0)+'K' } } },
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:ctx=>'₩'+ctx.raw.toLocaleString() } } }
+  }
+});
+
+// 주차별 추이
+const weeks = ['사전','1주차','2주차','3주차','4주차','5주차','6주차','7주차','8주차','9주차','10주차','11주차','12주차'];
+// 2025 데이터 — 이번 리포트에는 CV1만 포함, CV2·CV3는 추후 반영
+const cv1_2025 = [1593,1651,2783,2684,2769,2192,2332,2408,3495,5122,3901,2026,1593];
+const cv2_2025 = [null,null,null,null,null,null,null,null,null,null,null,null,null];
+const cv3_2025 = [null,null,null,null,null,null,null,null,null,null,null,null,null];
+// 2026 데이터 — 사전 확정, 이후 업데이트 예정
+const cv1_2026 = [1878,null,null,null,null,null,null,null,null,null,null,null,null];
+const cv2_2026 = [1278,null,null,null,null,null,null,null,null,null,null,null,null];
+const cv3_2026 = [null,null,null,null,null,null,null,null,null,null,null,null,null];
+
+const weeklyOpts = (label25, data25, label26, data26, color26) => ({
+  type:'line',
+  data:{
+    labels: weeks,
+    datasets:[
+      { label: label25, data: data25, borderColor:'#8892a4', backgroundColor:'rgba(136,146,164,.08)',
+        borderWidth:2, pointRadius:3, borderDash:[4,3], spanGaps:false },
+      { label: label26, data: data26, borderColor: color26,
+        backgroundColor: color26.replace(')',', .1)').replace('rgb','rgba'),
+        borderWidth:2.5, pointRadius:5, pointBackgroundColor: color26, spanGaps:false }
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:true,
+    scales:{ y:{ beginAtZero:false, ticks:{ callback:v=>v!=null?v.toLocaleString():'' } } },
+    plugins:{
+      legend:{ labels:{font:{size:10}} },
+      tooltip:{ callbacks:{ label:ctx=> ctx.raw !== null ? ctx.dataset.label+': '+ctx.raw.toLocaleString() : '미집계' } }
+    }
+  }
+});
+
+new Chart(document.getElementById('chartWeekly'),
+  weeklyOpts('2025 1단계(지원서 클릭)',cv1_2025,'2026 1단계(지원서 작성)',cv1_2026,'#4f8ef7'));
+new Chart(document.getElementById('chartWeekly2'),
+  weeklyOpts('2025 2단계(지원서 도착)',cv2_2025,'2026 2단계(유의사항)',cv2_2026,'#34d399'));
+new Chart(document.getElementById('chartWeekly3'),
+  weeklyOpts('2025 해당없음',cv3_2025,'2026 3단계(원서 작성)',cv3_2026,'#f472b6'));
+
+// ══════════════════════ 구글 로그인 인증 ══════════════════════
+const ALLOWED_EMAILS = [
+  'vldksk@gmail.com'
+  // 추가할 이메일은 여기에 한 줄씩: 'email@domain.com',
+];
+
+function handleCredential(response) {
+  // JWT 디코딩 (서명 검증 없이 payload만 파싱 — 내부용으로 충분)
+  const payload = JSON.parse(atob(response.credential.split('.')[1]));
+  const email = payload.email;
+
+  if (ALLOWED_EMAILS.includes(email.toLowerCase())) {
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('dashboardWrap').style.display = 'block';
+    // 로그인 상태 세션 저장 (탭 닫으면 초기화)
+    sessionStorage.setItem('auth_email', email);
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+
+// 이미 로그인한 경우 자동 통과
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = sessionStorage.getItem('auth_email');
+  if (saved && ALLOWED_EMAILS.includes(saved.toLowerCase())) {
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('dashboardWrap').style.display = 'block';
+  }
+});
+</script>
+</body>
+</html>
