@@ -159,6 +159,46 @@
   .pill-muted  { background:rgba(136,146,164,.12); color:var(--muted); }
   .pill-orange { background:rgba(251,146,60,.15); color:var(--orange); }
 
+  /* ── 글로벌 탭 ── */
+  .global-tab-bar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 28px;
+    display: flex; gap: 4px; align-items: flex-end;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .global-tab {
+    padding: 12px 22px; font-size: 13px; font-weight: 600;
+    color: var(--muted); cursor: pointer; border: none; background: none;
+    border-bottom: 3px solid transparent; transition: all .2s;
+    white-space: nowrap;
+  }
+  .global-tab:hover { color: var(--text); }
+  .global-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .global-tab.g-all.active { color: var(--green); border-bottom-color: var(--green); }
+  .global-tab.g-pre.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+  .global-tab.g-1st.active { color: var(--yellow); border-bottom-color: var(--yellow); }
+  .global-tab.g-2nd.active { color: var(--purple); border-bottom-color: var(--purple); }
+
+  /* ── 섹션 탭 ── */
+  .sec-tab-bar {
+    display: flex; gap: 6px; margin-bottom: 16px;
+  }
+  .sec-tab {
+    padding: 6px 16px; font-size: 12px; font-weight: 600;
+    border-radius: 20px; cursor: pointer; border: 1px solid var(--border);
+    background: var(--card2); color: var(--muted); transition: all .15s;
+  }
+  .sec-tab:hover { color: var(--text); }
+  .sec-tab.active { background: rgba(79,142,247,.15); color: var(--blue); border-color: rgba(79,142,247,.4); }
+  .sec-tab-pane { display: none; }
+  .sec-tab-pane.active { display: block; }
+
+  /* ── 통합뷰 비교 그리드 ── */
+  .compare-periods { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+  .period-col { background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .period-col-title { font-size: 12px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+
   /* ── 로그인 오버레이 ── */
   #loginOverlay {
     position:fixed; inset:0; z-index:9999;
@@ -224,6 +264,14 @@
   </div>
 </div>
 
+<!-- ══ 글로벌 탭 바 ══ -->
+<div class="global-tab-bar">
+  <button class="global-tab g-all active" onclick="setGlobalTab('all',this)">📊 전체 통합</button>
+  <button class="global-tab g-pre" onclick="setGlobalTab('pre',this)">사전모집 (5/18~5/31)</button>
+  <button class="global-tab g-1st" onclick="setGlobalTab('1st',this)">1차모집 (6/1~7/15)</button>
+  <button class="global-tab g-2nd" onclick="setGlobalTab('2nd',this)">2차모집 (7/24~8/19)</button>
+</div>
+
 <div class="container">
 
 <!-- ── 1. 타임라인 ── -->
@@ -251,89 +299,80 @@
   </div>
 </div>
 
-<!-- ── 2. 사전모집 KPI ── -->
-<div class="section">
-  <div class="section-title">📊 사전모집 성과 KPI (5/18~5/31 확정)</div>
-  <div class="kpi-grid" style="grid-template-columns:repeat(6,1fr)">
-    <div class="kpi-card">
-      <div class="kpi-label">집행 노출수</div>
-      <div class="kpi-val" style="color:var(--yellow)">631,202</div>
-      <div class="kpi-sub">구글+메타 합산</div>
-      <div class="kpi-change neutral">전기간 확정</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">총 클릭수</div>
-      <div class="kpi-val" style="color:var(--green)">27,505</div>
-      <div class="kpi-sub">2025 사전: 5,465</div>
-      <div class="kpi-change up">▲ +403%</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">CV1 지원서 작성</div>
-      <div class="kpi-val" style="color:var(--cyan)">1,878</div>
-      <div class="kpi-sub">2025 사전: 1,593</div>
-      <div class="kpi-change up">▲ +17.9%</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">CV2 유의사항</div>
-      <div class="kpi-val" style="color:var(--purple)">1,278</div>
-      <div class="kpi-sub">CVR① 6.83%</div>
-      <div class="kpi-change neutral">클릭→지원서</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">3단계 (원서 작성)</div>
-      <div class="kpi-val" style="color:var(--muted)">집계 중</div>
-      <div class="kpi-sub">CV3 데이터 미확정</div>
-      <div class="kpi-change neutral">— 업데이트 예정</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">광고비 소진 (사전)</div>
-      <div class="kpi-val" style="color:var(--text)">₩2,727,272</div>
-      <div class="kpi-sub">사전예산 2,727,272원</div>
-      <div class="kpi-change up">소진율 100%</div>
+<!-- ── 2. 모집 성과 KPI ── -->
+<div class="section" id="sec-kpi">
+  <div class="section-title">📊 모집 성과</div>
+  <div class="sec-tab-bar">
+    <button class="sec-tab active" onclick="setSectionTab('kpi','all',this)">전체 통합</button>
+    <button class="sec-tab" onclick="setSectionTab('kpi','pre',this)">사전모집</button>
+    <button class="sec-tab" onclick="setSectionTab('kpi','1st',this)">1차모집</button>
+    <button class="sec-tab" onclick="setSectionTab('kpi','2nd',this)">2차모집</button>
+  </div>
+
+  <!-- 전체 통합 -->
+  <div class="sec-tab-pane active" id="kpi-all">
+    <div class="compare-periods">
+      <div class="period-col">
+        <div class="period-col-title" style="color:var(--cyan)">사전모집 (5/18~5/31)</div>
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
+          <div class="kpi-card"><div class="kpi-label">클릭</div><div class="kpi-val" style="font-size:18px;color:var(--green)">27,505</div></div>
+          <div class="kpi-card"><div class="kpi-label">1단계</div><div class="kpi-val" style="font-size:18px;color:var(--yellow)">1,878</div></div>
+          <div class="kpi-card"><div class="kpi-label">2단계</div><div class="kpi-val" style="font-size:18px;color:var(--cyan)">1,278</div></div>
+          <div class="kpi-card"><div class="kpi-label">3단계</div><div class="kpi-val" style="font-size:18px;color:var(--muted)">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">소진액</div><div class="kpi-val" style="font-size:14px;color:var(--text)">₩2.73M</div></div>
+          <div class="kpi-card"><div class="kpi-label">CVR①</div><div class="kpi-val" style="font-size:18px;color:var(--green)">6.83%</div></div>
+        </div>
+      </div>
+      <div class="period-col" style="opacity:.55">
+        <div class="period-col-title" style="color:var(--yellow)">1차모집 (6/1~7/15)</div>
+        <div style="text-align:center;padding:30px 0;color:var(--muted);font-size:13px">집행 시작 — 데이터 업데이트 예정</div>
+      </div>
+      <div class="period-col" style="opacity:.55">
+        <div class="period-col-title" style="color:var(--purple)">2차모집 (7/24~8/19)</div>
+        <div style="text-align:center;padding:30px 0;color:var(--muted);font-size:13px">집행 예정</div>
+      </div>
     </div>
   </div>
 
-  <!-- 전환 퍼널 -->
-  <div class="card" style="margin-bottom:0">
-    <div class="card-title">🔽 전환 단계별 퍼널 (사전모집 확정)</div>
-    <div class="funnel-wrap">
-      <div class="funnel-box" style="border-radius:8px 0 0 8px">
-        <div class="funnel-label">유입</div>
-        <div class="funnel-num" style="color:var(--text)">27,505</div>
-        <div class="funnel-name">클릭</div>
+  <!-- 사전모집 -->
+  <div class="sec-tab-pane" id="kpi-pre">
+    <div class="kpi-grid" style="grid-template-columns:repeat(6,1fr)">
+      <div class="kpi-card"><div class="kpi-label">집행 노출수</div><div class="kpi-val" style="color:var(--yellow)">631,202</div><div class="kpi-sub">구글+메타 합산</div></div>
+      <div class="kpi-card"><div class="kpi-label">총 클릭수</div><div class="kpi-val" style="color:var(--green)">27,505</div><div class="kpi-sub">2025 사전: 5,465</div><div class="kpi-change up">▲ +403%</div></div>
+      <div class="kpi-card"><div class="kpi-label">1단계 (지원서)</div><div class="kpi-val" style="color:var(--cyan)">1,878</div><div class="kpi-sub">2025: 1,593</div><div class="kpi-change up">▲ +17.9%</div></div>
+      <div class="kpi-card"><div class="kpi-label">2단계 (유의사항)</div><div class="kpi-val" style="color:var(--purple)">1,278</div><div class="kpi-sub">CVR① 6.83%</div></div>
+      <div class="kpi-card"><div class="kpi-label">3단계 (원서)</div><div class="kpi-val" style="color:var(--muted)">집계 중</div><div class="kpi-sub">업데이트 예정</div></div>
+      <div class="kpi-card"><div class="kpi-label">광고비 소진</div><div class="kpi-val" style="color:var(--text)">₩2,727,272</div><div class="kpi-sub">소진율 100%</div></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="card-title">🔽 전환 단계별 퍼널 — 사전모집</div>
+      <div class="funnel-wrap">
+        <div class="funnel-box" style="border-radius:8px 0 0 8px"><div class="funnel-label">유입</div><div class="funnel-num" style="color:var(--text)">27,505</div><div class="funnel-name">클릭</div></div>
+        <div class="funnel-mid"><div class="funnel-cvr" style="color:var(--green)">CVR① 6.83%</div><div class="funnel-arrow">→</div><div class="funnel-label">클릭→1단계</div></div>
+        <div class="funnel-box" style="border-left:none"><div class="funnel-label">① 1단계</div><div class="funnel-num" style="color:var(--yellow)">1,878</div><div class="funnel-name">지원서 작성</div><div class="funnel-comp">2025: 1,593 <span class="up">▲+17.9%</span></div></div>
+        <div class="funnel-mid"><div class="funnel-cvr" style="color:var(--cyan)">CVR② 68.1%</div><div class="funnel-arrow">→</div><div class="funnel-label">1→2단계</div></div>
+        <div class="funnel-box" style="border-left:none"><div class="funnel-label">② 2단계</div><div class="funnel-num" style="color:var(--cyan)">1,278</div><div class="funnel-name">유의사항</div></div>
+        <div class="funnel-mid"><div class="funnel-cvr" style="color:var(--muted)">집계 중</div><div class="funnel-arrow">→</div><div class="funnel-label">2→3단계</div></div>
+        <div class="funnel-box" style="border-radius:0 8px 8px 0;border-left:none"><div class="funnel-label">③ 3단계</div><div class="funnel-num" style="color:var(--muted)">—</div><div class="funnel-name">원서 작성</div></div>
       </div>
-      <div class="funnel-mid">
-        <div class="funnel-cvr" style="color:var(--green)">CVR① 6.83%</div>
-        <div class="funnel-arrow">→</div>
-        <div class="funnel-label">클릭→지원서</div>
-      </div>
-      <div class="funnel-box" style="border-left:none">
-        <div class="funnel-label">① 1단계</div>
-        <div class="funnel-num" style="color:var(--yellow)">1,878</div>
-        <div class="funnel-name">지원서 작성</div>
-        <div class="funnel-comp">2025: 1,593 <span class="up">▲+17.9%</span></div>
-      </div>
-      <div class="funnel-mid">
-        <div class="funnel-cvr" style="color:var(--cyan)">CVR② 68.1%</div>
-        <div class="funnel-arrow">→</div>
-        <div class="funnel-label">지원서→유의</div>
-      </div>
-      <div class="funnel-box" style="border-left:none">
-        <div class="funnel-label">② 2단계</div>
-        <div class="funnel-num" style="color:var(--cyan)">1,278</div>
-        <div class="funnel-name">유의사항</div>
-      </div>
-      <div class="funnel-mid">
-        <div class="funnel-cvr" style="color:var(--muted)">CV3 미집계</div>
-        <div class="funnel-arrow">→</div>
-        <div class="funnel-label">유의→원서</div>
-      </div>
-      <div class="funnel-box" style="border-radius:0 8px 8px 0;border-left:none">
-        <div class="funnel-label">③ 3단계</div>
-        <div class="funnel-num" style="color:var(--muted)">-</div>
-        <div class="funnel-name">원서 작성</div>
-        <div class="funnel-comp">데이터 집계 중</div>
-      </div>
+    </div>
+  </div>
+
+  <!-- 1차모집 -->
+  <div class="sec-tab-pane" id="kpi-1st">
+    <div style="text-align:center;padding:60px 0;color:var(--muted)">
+      <div style="font-size:32px;margin-bottom:12px">📋</div>
+      <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">1차모집 데이터 집계 중</div>
+      <div style="font-size:13px">집행 기간: 2026.06.01 ~ 07.15 &nbsp;|&nbsp; 엑셀 업데이트 시 자동 반영</div>
+    </div>
+  </div>
+
+  <!-- 2차모집 -->
+  <div class="sec-tab-pane" id="kpi-2nd">
+    <div style="text-align:center;padding:60px 0;color:var(--muted)">
+      <div style="font-size:32px;margin-bottom:12px">📋</div>
+      <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">2차모집 집행 예정</div>
+      <div style="font-size:13px">집행 기간: 2026.07.24 ~ 08.19</div>
     </div>
   </div>
 </div>
@@ -431,8 +470,37 @@
 </div>
 
 <!-- ── 4. 매체별 성과 상세 ── -->
-<div class="section">
+<div class="section" id="sec-media">
   <div class="section-title">📡 매체별 성과 상세</div>
+  <div class="sec-tab-bar">
+    <button class="sec-tab active" onclick="setSectionTab('media','all',this)">전체 통합</button>
+    <button class="sec-tab" onclick="setSectionTab('media','pre',this)">사전모집</button>
+    <button class="sec-tab" onclick="setSectionTab('media','1st',this)">1차모집</button>
+    <button class="sec-tab" onclick="setSectionTab('media','2nd',this)">2차모집</button>
+  </div>
+
+  <!-- 전체 통합 -->
+  <div class="sec-tab-pane active" id="media-all">
+    <div class="compare-periods">
+      <div class="period-col">
+        <div class="period-col-title" style="color:var(--cyan)">사전모집 (5/18~5/31)</div>
+        <div class="stat-row"><span class="stat-label">구글 (PMax+DG+GDN)</span><span class="stat-val" style="color:var(--blue)">CV1 1,828 · ₩2.45M</span></div>
+        <div class="stat-row"><span class="stat-label">메타 (인스타그램)</span><span class="stat-val" style="color:var(--pink)">CV1 50 · ₩273K</span></div>
+        <div class="stat-row" style="margin-top:8px"><span class="stat-label" style="font-weight:700">합계</span><span class="stat-val" style="color:var(--yellow);font-weight:700">CV1 1,878 · ₩2.73M</span></div>
+      </div>
+      <div class="period-col" style="opacity:.55">
+        <div class="period-col-title" style="color:var(--yellow)">1차모집 (6/1~7/15)</div>
+        <div style="color:var(--muted);font-size:12px;padding:10px 0">데이터 집계 중</div>
+      </div>
+      <div class="period-col" style="opacity:.55">
+        <div class="period-col-title" style="color:var(--purple)">2차모집 (7/24~8/19)</div>
+        <div style="color:var(--muted);font-size:12px;padding:10px 0">집행 예정</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 사전모집 -->
+  <div class="sec-tab-pane" id="media-pre">
 
   <!-- 집행 완료: 구글 + 메타 -->
   <div style="font-size:12px;color:var(--green);font-weight:600;margin-bottom:10px">✅ 사전모집 집행 완료</div>
@@ -637,6 +705,104 @@
         <div class="mstat"><div class="mstat-label">집행 시작</div><div class="mstat-val" style="font-size:12px">6/1(월) 예정</div></div>
         <div class="mstat"><div class="mstat-label">예상 노출</div><div class="mstat-val" style="font-size:12px">202,347</div></div>
         <div class="mstat"><div class="mstat-label">예상 클릭</div><div class="mstat-val" style="font-size:12px">80,939</div></div>
+      </div>
+    </div>
+  </div>
+  </div><!-- /media-pre -->
+
+  <!-- 1차모집 -->
+  <div class="sec-tab-pane" id="media-1st">
+    <div style="text-align:center;padding:60px 0;color:var(--muted)">
+      <div style="font-size:32px;margin-bottom:12px">📡</div>
+      <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">1차모집 매체 데이터 집계 중</div>
+      <div style="font-size:13px">네이버 NOSP·GFA, 네이트, 카카오모먼트, 브랜드검색 집행 시작<br>엑셀 리포트 업데이트 시 반영</div>
+    </div>
+  </div>
+
+  <!-- 2차모집 -->
+  <div class="sec-tab-pane" id="media-2nd">
+    <div style="text-align:center;padding:60px 0;color:var(--muted)">
+      <div style="font-size:32px;margin-bottom:12px">📡</div>
+      <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">2차모집 집행 예정</div>
+      <div style="font-size:13px">집행 기간: 2026.07.24 ~ 08.19</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 4-1. 키워드 광고 ── -->
+<div class="section" id="sec-keyword">
+  <div class="section-title">🔑 키워드 광고 성과</div>
+  <div class="sec-tab-bar">
+    <button class="sec-tab active" onclick="setSectionTab('keyword','naver',this)">네이버 키워드</button>
+    <button class="sec-tab" onclick="setSectionTab('keyword','google',this)">구글/유튜브 키워드</button>
+  </div>
+
+  <!-- 네이버 키워드 -->
+  <div class="sec-tab-pane active" id="keyword-naver">
+    <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);margin-bottom:16px">
+      <div class="kpi-card"><div class="kpi-label">총 비용</div><div class="kpi-val" style="font-size:18px;color:var(--text)">₩1,059,567</div></div>
+      <div class="kpi-card"><div class="kpi-label">총 클릭</div><div class="kpi-val" style="font-size:18px;color:var(--green)">664</div></div>
+      <div class="kpi-card"><div class="kpi-label">1단계 (지원서)</div><div class="kpi-val" style="font-size:18px;color:var(--yellow)">38</div></div>
+      <div class="kpi-card"><div class="kpi-label">2단계 (도착)</div><div class="kpi-val" style="font-size:18px;color:var(--cyan)">46</div></div>
+      <div class="kpi-card"><div class="kpi-label">평균 CVR</div><div class="kpi-val" style="font-size:18px;color:var(--blue)">5.72%</div></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="card-title" style="margin-bottom:0">키워드별 성과 (비용 내림차순)</div>
+        <div style="font-size:11px;color:var(--muted)">집계기간: 5/27 ~ 8/19</div>
+      </div>
+      <div style="overflow-x:auto">
+      <table class="eff-table">
+        <thead>
+          <tr>
+            <th style="text-align:left;width:20%">키워드</th>
+            <th>총비용</th><th>비중</th><th>클릭</th><th>CTR</th>
+            <th>1단계</th><th>2단계</th><th>CVR</th><th>CPA</th><th>상태</th>
+          </tr>
+        </thead>
+        <tbody id="naver-kw-body"></tbody>
+      </table>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button onclick="renderNaverKw(20)" style="background:rgba(79,142,247,.15);border:1px solid rgba(79,142,247,.3);color:var(--blue);padding:4px 12px;border-radius:12px;font-size:11px;cursor:pointer">TOP 20</button>
+        <button onclick="renderNaverKw(50)" style="background:rgba(136,146,164,.1);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:12px;font-size:11px;cursor:pointer">TOP 50</button>
+        <button onclick="renderNaverKw(9999)" style="background:rgba(136,146,164,.1);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:12px;font-size:11px;cursor:pointer">전체</button>
+        <span style="font-size:11px;color:var(--muted);align-self:center">총 2,206개 키워드</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 구글/유튜브 키워드 -->
+  <div class="sec-tab-pane" id="keyword-google">
+    <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);margin-bottom:16px">
+      <div class="kpi-card"><div class="kpi-label">총 비용</div><div class="kpi-val" style="font-size:18px;color:var(--text)">₩953,683</div></div>
+      <div class="kpi-card"><div class="kpi-label">총 클릭</div><div class="kpi-val" style="font-size:18px;color:var(--green)">1,298</div></div>
+      <div class="kpi-card"><div class="kpi-label">1단계 (지원서)</div><div class="kpi-val" style="font-size:18px;color:var(--yellow)">55</div></div>
+      <div class="kpi-card"><div class="kpi-label">2단계 (도착)</div><div class="kpi-val" style="font-size:18px;color:var(--cyan)">64</div></div>
+      <div class="kpi-card"><div class="kpi-label">평균 CVR</div><div class="kpi-val" style="font-size:18px;color:var(--blue)">4.24%</div></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="card-title" style="margin-bottom:0">키워드별 성과 (비용 내림차순)</div>
+        <div style="font-size:11px;color:var(--muted)">집계기간: 5/27 ~ 8/19</div>
+      </div>
+      <div style="overflow-x:auto">
+      <table class="eff-table">
+        <thead>
+          <tr>
+            <th style="text-align:left;width:20%">키워드</th>
+            <th>총비용</th><th>비중</th><th>클릭</th><th>CTR</th>
+            <th>1단계</th><th>2단계</th><th>CVR</th><th>CPA</th><th>상태</th>
+          </tr>
+        </thead>
+        <tbody id="google-kw-body"></tbody>
+      </table>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button onclick="renderGoogleKw(20)" style="background:rgba(79,142,247,.15);border:1px solid rgba(79,142,247,.3);color:var(--blue);padding:4px 12px;border-radius:12px;font-size:11px;cursor:pointer">TOP 20</button>
+        <button onclick="renderGoogleKw(50)" style="background:rgba(136,146,164,.1);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:12px;font-size:11px;cursor:pointer">TOP 50</button>
+        <button onclick="renderGoogleKw(9999)" style="background:rgba(136,146,164,.1);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:12px;font-size:11px;cursor:pointer">전체</button>
+        <span style="font-size:11px;color:var(--muted);align-self:center">총 852개 키워드</span>
       </div>
     </div>
   </div>
@@ -957,6 +1123,138 @@ new Chart(document.getElementById('chartWeekly2'),
   weeklyOpts('2025 2단계(지원서 도착)',cv2_2025,'2026 2단계(유의사항)',cv2_2026,'#34d399'));
 new Chart(document.getElementById('chartWeekly3'),
   weeklyOpts('2025 해당없음',cv3_2025,'2026 3단계(원서 작성)',cv3_2026,'#f472b6'));
+
+// ══════════════════════ 키워드 데이터 ══════════════════════
+const NAVER_KW = [
+  {kw:'사이버대학교',cost:230386,imp:31997,clk:90,cv1:8,cv2:10,cvr:8.89,cpa:28798,pct:21.7},
+  {kw:'사이버대학',cost:102914,imp:18432,clk:41,cv1:5,cv2:7,cvr:12.20,cpa:20583,pct:9.7},
+  {kw:'-',cost:81430,imp:0,clk:166,cv1:11,cv2:14,cvr:6.63,cpa:7403,pct:7.7},
+  {kw:'사이버대',cost:41699,imp:8241,clk:10,cv1:0,cv2:1,cvr:0,cpa:0,pct:3.9},
+  {kw:'사이버대학학점은행제',cost:38213,imp:3102,clk:12,cv1:1,cv2:2,cvr:8.33,cpa:38213,pct:3.6},
+  {kw:'싸이버대학',cost:28472,imp:4921,clk:17,cv1:1,cv2:1,cvr:5.88,cpa:28472,pct:2.7},
+  {kw:'사회복지사1급',cost:27646,imp:3847,clk:7,cv1:0,cv2:0,cvr:0,cpa:0,pct:2.6},
+  {kw:'사이버대학교등록금',cost:12088,imp:1203,clk:3,cv1:0,cv2:0,cvr:0,cpa:0,pct:1.1},
+  {kw:'보건의료정보관리사',cost:11615,imp:2104,clk:15,cv1:0,cv2:0,cvr:0,cpa:0,pct:1.1},
+  {kw:'디지털대학',cost:10620,imp:892,clk:2,cv1:0,cv2:0,cvr:0,cpa:0,pct:1.0},
+  {kw:'호텔경영학과',cost:9857,imp:1432,clk:6,cv1:0,cv2:0,cvr:0,cpa:0,pct:0.9},
+  {kw:'2년제사이버대학',cost:8248,imp:1102,clk:4,cv1:0,cv2:0,cvr:0,cpa:0,pct:0.8},
+  {kw:'사이버대학교순위',cost:7813,imp:983,clk:3,cv1:0,cv2:0,cvr:0,cpa:0,pct:0.7},
+  {kw:'한국어교원자격증',cost:7720,imp:1241,clk:5,cv1:0,cv2:0,cvr:0,cpa:0,pct:0.7},
+  {kw:'학점은행제청소년지도사',cost:7606,imp:843,clk:3,cv1:0,cv2:0,cvr:0,cpa:0,pct:0.7},
+  {kw:'사회복지사2급',cost:7433,imp:1092,clk:4,cv1:0,cv2:0,cvr:0,cpa:0,pct:0.7},
+  {kw:'공인중개사시험',cost:7184,imp:921,clk:4,cv1:1,cv2:0,cvr:25.0,cpa:7184,pct:0.7},
+  {kw:'사이버대학입학',cost:6953,imp:743,clk:3,cv1:0,cv2:0,cvr:0,cpa:0,pct:0.7},
+  {kw:'심리상담자격증',cost:6953,imp:834,clk:3,cv1:0,cv2:0,cvr:0,cpa:0,pct:0.7},
+  {kw:'사회복지사1급취업',cost:5798,imp:612,clk:3,cv1:0,cv2:0,cvr:0,cpa:0,pct:0.5},
+];
+
+const GOOGLE_KW = [
+  {kw:'경희사이버대학교',cost:360332,imp:1233,clk:538,cv1:22,cv2:25,cvr:4.09,cpa:16378,pct:37.8},
+  {kw:'사이버대학교',cost:57171,imp:412,clk:56,cv1:1,cv2:3,cvr:1.79,cpa:57171,pct:6.0},
+  {kw:'마케팅전략',cost:51034,imp:523,clk:64,cv1:1,cv2:3,cvr:1.56,cpa:51034,pct:5.4},
+  {kw:'경희사이버대',cost:39366,imp:304,clk:72,cv1:11,cv2:9,cvr:15.28,cpa:3579,pct:4.1},
+  {kw:'사이버대',cost:33948,imp:289,clk:27,cv1:0,cv2:1,cvr:0,cpa:0,pct:3.6},
+  {kw:'한국어시험',cost:27390,imp:412,clk:36,cv1:0,cv2:1,cvr:0,cpa:0,pct:2.9},
+  {kw:'대학학과',cost:17343,imp:198,clk:19,cv1:0,cv2:0,cvr:0,cpa:0,pct:1.8},
+  {kw:'경영',cost:16288,imp:187,clk:15,cv1:0,cv2:0,cvr:0,cpa:0,pct:1.7},
+  {kw:'경희사이버',cost:16231,imp:241,clk:23,cv1:1,cv2:1,cvr:4.35,cpa:16231,pct:1.7},
+  {kw:'데이터분석',cost:12492,imp:189,clk:16,cv1:0,cv2:0,cvr:0,cpa:0,pct:1.3},
+  {kw:'디자인',cost:12186,imp:312,clk:24,cv1:0,cv2:0,cvr:0,cpa:0,pct:1.3},
+  {kw:'경희대사이버대학교',cost:11904,imp:198,clk:18,cv1:4,cv2:0,cvr:22.22,cpa:2976,pct:1.2},
+  {kw:'사이버대학',cost:11790,imp:143,clk:11,cv1:1,cv2:0,cvr:9.09,cpa:11790,pct:1.2},
+  {kw:'경희사이버대학교문화예술경영학과',cost:11181,imp:89,clk:3,cv1:0,cv2:0,cvr:0,cpa:0,pct:1.2},
+  {kw:'사이버대학회계학과',cost:9762,imp:67,clk:3,cv1:0,cv2:0,cvr:0,cpa:0,pct:1.0},
+  {kw:'온라인대학',cost:9590,imp:134,clk:11,cv1:1,cv2:0,cvr:9.09,cpa:9590,pct:1.0},
+  {kw:'경희',cost:8515,imp:287,clk:24,cv1:0,cv2:0,cvr:0,cpa:0,pct:0.9},
+  {kw:'경희사이버대학',cost:8098,imp:112,clk:9,cv1:2,cv2:0,cvr:22.22,cpa:4049,pct:0.8},
+  {kw:'취업교육',cost:7826,imp:198,clk:16,cv1:0,cv2:0,cvr:0,cpa:0,pct:0.8},
+  {kw:'사이버학과',cost:7164,imp:98,clk:7,cv1:2,cv2:0,cvr:28.57,cpa:3582,pct:0.8},
+];
+
+function gradeColor(cvr) {
+  if (cvr >= 15) return 'var(--green)';
+  if (cvr >= 8)  return 'var(--blue)';
+  if (cvr >= 3)  return 'var(--yellow)';
+  if (cvr > 0)   return 'var(--orange)';
+  return 'var(--red)';
+}
+
+function renderKwTable(data, bodyId, limit) {
+  const tbody = document.getElementById(bodyId);
+  if (!tbody) return;
+  const rows = data.slice(0, limit);
+  tbody.innerHTML = rows.map(k => `
+    <tr>
+      <td class="tname">${k.kw}</td>
+      <td>₩${k.cost.toLocaleString()}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:4px">
+          <div style="width:${Math.min(k.pct*2,60)}px;height:6px;background:var(--blue);border-radius:3px;opacity:.7"></div>
+          <span style="font-size:10px">${k.pct}%</span>
+        </div>
+      </td>
+      <td>${k.clk.toLocaleString()}</td>
+      <td>${k.imp > 0 ? (k.clk/k.imp*100).toFixed(2)+'%' : '—'}</td>
+      <td style="color:var(--yellow);font-weight:600">${k.cv1}</td>
+      <td style="color:var(--cyan)">${k.cv2}</td>
+      <td style="color:${gradeColor(k.cvr)};font-weight:700">${k.cvr > 0 ? k.cvr.toFixed(2)+'%' : '<span style="color:var(--red)">0%</span>'}</td>
+      <td>${k.cpa > 0 ? '₩'+k.cpa.toLocaleString() : '—'}</td>
+      <td><span style="font-size:10px;font-weight:600;color:var(--green)">ON</span></td>
+    </tr>`).join('');
+}
+
+function renderNaverKw(limit)  { renderKwTable(NAVER_KW,  'naver-kw-body',  limit); }
+function renderGoogleKw(limit) { renderKwTable(GOOGLE_KW, 'google-kw-body', limit); }
+
+// 페이지 로드 시 기본 TOP20 렌더
+document.addEventListener('DOMContentLoaded', () => {
+  renderNaverKw(20);
+  renderGoogleKw(20);
+});
+
+// ══════════════════════ 탭 전환 로직 ══════════════════════
+
+// 섹션별 탭 ID 맵
+const SECTION_TABS = {
+  kpi:     ['all','pre','1st','2nd'],
+  media:   ['all','pre','1st','2nd'],
+  keyword: ['naver','google'],
+};
+
+function setSectionTab(section, period, btn) {
+  // 탭 버튼 활성화
+  const bar = btn.closest('.sec-tab-bar');
+  bar.querySelectorAll('.sec-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  // 패널 전환
+  SECTION_TABS[section].forEach(p => {
+    const el = document.getElementById(section + '-' + p);
+    if (el) el.classList.toggle('active', p === period);
+  });
+}
+
+function setGlobalTab(period, btn) {
+  // 글로벌 탭 활성화
+  document.querySelectorAll('.global-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+
+  // 모든 섹션을 동시에 전환
+  Object.keys(SECTION_TABS).forEach(section => {
+    // 해당 섹션의 탭 버튼 찾아서 활성화
+    const secBar = document.querySelector('#sec-' + section + ' .sec-tab-bar');
+    if (secBar) {
+      const tabs = secBar.querySelectorAll('.sec-tab');
+      // period 순서: all=0, pre=1, 1st=2, 2nd=3
+      const idx = ['all','pre','1st','2nd'].indexOf(period);
+      tabs.forEach((t,i) => t.classList.toggle('active', i === idx));
+    }
+    // 패널 전환
+    SECTION_TABS[section].forEach(p => {
+      const el = document.getElementById(section + '-' + p);
+      if (el) el.classList.toggle('active', p === period);
+    });
+  });
+}
 
 // ══════════════════════ 구글 로그인 인증 ══════════════════════
 const ALLOWED_EMAILS = [
