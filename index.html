@@ -1139,10 +1139,29 @@ const days = ['5/18','5/19','5/20','5/21','5/22','5/23','5/24','5/25','5/26','5/
 
 // 일별 성과 (전매체 합산 — Total 시트 기준)
 const totalClk  = [1942,1747,712,1098,1550,2329,2618,2680,2136,2823,2476,2612,2569,2174,40779,38689,25350,48108];
-const pmaxClk   = [683,651,394,704,936,922,970,841,512,513,529,647,401,516,5809,4409,6380,7686];
 const totalCV1  = [156,173,79,97,81,126,131,205,142,160,141,195,142,169,1919,1285,1597,2175];
-const pmaxCV1   = [133,151,72,89,75,109,125,200,132,134,108,164,119,140,438,249,508,828];
 const totalSpend= [743644,198016,132569,125937,133072,151392,164980,171692,162879,641018,578137,480368,479440,394116,23706329,5043302,3549670,4756848];
+
+// 매체별 일별 클릭 (구글 시트 + 각 매체 시트 기준)
+const pmaxClk     = [683,651,394,704,936,922,970,841,512,513,529,647,401,516,5809,4409,6380,7686];
+const googleDgClk = [775,928,234,290,524,1310,1550,1747,1536,1805,1458,1544,1593,1262,14152,13161,12786,11083];
+const metaClk     = [484,168,84,104,90,97,98,92,88,88,83,77,101,76,219,202,221,221];
+const kwdClk      = [0,0,0,0,0,0,0,0,0,417,406,344,474,320,549,497,314,0];
+const brandClk    = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,2450,1682,1115,1671];
+const gfaClk      = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,606,516,546,522];
+const nospClk     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,12317,0,0,0];
+const nateClk     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,2265,15688,1887,24627];
+const kakaoClk    = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,2412,2534,2101,2298];
+
+// 매체별 일별 CV1
+const pmaxCV1     = [133,151,72,89,75,109,125,200,132,134,108,164,119,140,438,249,508,828];
+const metaCV1     = [9,7,2,2,2,11,3,0,3,0,2,3,3,3,19,11,7,4];
+const brandCV1    = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,118,100,18,90];
+const gfaCV1      = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,63,43,11,12];
+const nospCV1     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,37,0,0,0];
+const nateCV1     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,32,44,7,34];
+const kakaoCV1    = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,28,19,9,12];
+const googleDgCV1 = totalCV1.map((v,i)=>Math.max(0, v-pmaxCV1[i]-metaCV1[i]-brandCV1[i]-gfaCV1[i]-nospCV1[i]-nateCV1[i]-kakaoCV1[i]));
 
 // 일별 클릭 차트
 new Chart(document.getElementById('chartDailyClk'), {
@@ -1150,11 +1169,17 @@ new Chart(document.getElementById('chartDailyClk'), {
   data:{
     labels: days,
     datasets:[
-      { label:'PMax 클릭', data:pmaxClk,   backgroundColor:'rgba(79,142,247,.7)',  order:1 },
-      { label:'기타(DG+GDN+메타)', data:totalClk.map((v,i)=>v-pmaxClk[i]),
-        backgroundColor:'rgba(167,139,250,.5)', order:1 },
-      { label:'총 클릭', data:totalClk, type:'line', borderColor:'#34d399',
-        backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'#34d399', order:0 }
+      { label:'구글 PMax',    data:pmaxClk,     backgroundColor:'rgba(79,142,247,.85)', order:1 },
+      { label:'구글 DG+GDN',  data:googleDgClk, backgroundColor:'rgba(147,197,253,.75)', order:1 },
+      { label:'네이버 NOSP',   data:nospClk,     backgroundColor:'rgba(52,211,153,.85)', order:1 },
+      { label:'네이버 GFA',    data:gfaClk,      backgroundColor:'rgba(16,185,129,.7)',  order:1 },
+      { label:'네이버 브랜드검색', data:brandClk, backgroundColor:'rgba(6,148,110,.75)', order:1 },
+      { label:'네이트',        data:nateClk,     backgroundColor:'rgba(251,146,60,.85)', order:1 },
+      { label:'카카오',        data:kakaoClk,    backgroundColor:'rgba(253,224,71,.85)', order:1 },
+      { label:'메타',          data:metaClk,     backgroundColor:'rgba(248,113,113,.8)', order:1 },
+      { label:'키워드검색',    data:kwdClk,      backgroundColor:'rgba(167,139,250,.8)', order:1 },
+      { label:'총 클릭', data:totalClk, type:'line', borderColor:'#f8fafc',
+        backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'#f8fafc', order:0 }
     ]
   },
   options:{
@@ -1163,7 +1188,7 @@ new Chart(document.getElementById('chartDailyClk'), {
       x:{ stacked:true },
       y:{ stacked:true, ticks:{ callback:v=>v.toLocaleString() } }
     },
-    plugins:{ legend:{ labels:{ font:{size:11} } } }
+    plugins:{ legend:{ labels:{ font:{size:10}, boxWidth:12 } } }
   }
 });
 
@@ -1173,9 +1198,14 @@ new Chart(document.getElementById('chartDailyCV'), {
   data:{
     labels: days,
     datasets:[
-      { label:'PMax CV1', data:pmaxCV1,  backgroundColor:'rgba(251,191,36,.8)',  order:1 },
-      { label:'기타 CV1', data:totalCV1.map((v,i)=>Math.max(0,v-pmaxCV1[i])),
-        backgroundColor:'rgba(52,211,153,.5)', order:1 },
+      { label:'구글 PMax',    data:pmaxCV1,     backgroundColor:'rgba(79,142,247,.85)', order:1 },
+      { label:'구글 DG+GDN',  data:googleDgCV1, backgroundColor:'rgba(147,197,253,.75)', order:1 },
+      { label:'네이버 NOSP',   data:nospCV1,     backgroundColor:'rgba(52,211,153,.85)', order:1 },
+      { label:'네이버 GFA',    data:gfaCV1,      backgroundColor:'rgba(16,185,129,.7)',  order:1 },
+      { label:'네이버 브랜드검색', data:brandCV1, backgroundColor:'rgba(6,148,110,.75)', order:1 },
+      { label:'네이트',        data:nateCV1,     backgroundColor:'rgba(251,146,60,.85)', order:1 },
+      { label:'카카오',        data:kakaoCV1,    backgroundColor:'rgba(253,224,71,.85)', order:1 },
+      { label:'메타',          data:metaCV1,     backgroundColor:'rgba(248,113,113,.8)', order:1 },
       { label:'총 CV1', data:totalCV1, type:'line', borderColor:'#f472b6',
         backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'#f472b6', order:0 }
     ]
@@ -1183,7 +1213,7 @@ new Chart(document.getElementById('chartDailyCV'), {
   options:{
     responsive:true, maintainAspectRatio:true,
     scales:{ x:{stacked:true}, y:{stacked:true, ticks:{callback:v=>v.toLocaleString()}} },
-    plugins:{ legend:{ labels:{font:{size:11}} } }
+    plugins:{ legend:{ labels:{font:{size:10}, boxWidth:12} } }
   }
 });
 
